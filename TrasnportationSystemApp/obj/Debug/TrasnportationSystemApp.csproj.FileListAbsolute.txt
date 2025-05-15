@@ -1,0 +1,7 @@
+E:\programming\dataBase\Transportation System app in C#\Transportation-System\TrasnportationSystemApp\bin\Debug\TrasnportationSystemApp.exe.config
+E:\programming\dataBase\Transportation System app in C#\Transportation-System\TrasnportationSystemApp\bin\Debug\TrasnportationSystemApp.exe
+E:\programming\dataBase\Transportation System app in C#\Transportation-System\TrasnportationSystemApp\bin\Debug\TrasnportationSystemApp.pdb
+E:\programming\dataBase\Transportation System app in C#\Transportation-System\TrasnportationSystemApp\obj\Debug\TrasnportationSystemApp.csproj.AssemblyReference.cache
+E:\programming\dataBase\Transportation System app in C#\Transportation-System\TrasnportationSystemApp\obj\Debug\TrasnportationSystemApp.csproj.CoreCompileInputs.cache
+E:\programming\dataBase\Transportation System app in C#\Transportation-System\TrasnportationSystemApp\obj\Debug\TrasnportationSystemApp.exe
+E:\programming\dataBase\Transportation System app in C#\Transportation-System\TrasnportationSystemApp\obj\Debug\TrasnportationSystemApp.pdb

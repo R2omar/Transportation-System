@@ -1,0 +1,126 @@
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Collections.Generic;
+using Trasnportation_System;
+using DriverInfo;
+
+
+namespace DriverInfo
+{
+  class Driver
+  {
+    public int DriverId { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string LicenceNumber { get; }
+    public string Status { get; }
+    public List<string> PhoneNumbers { get; }
+
+    public Driver(int driverId, string firstName, string lastName, string licenceNumber, string status, List<string> phoneNumbers)
+    {
+      DriverId = driverId;
+      FirstName = firstName;
+      LastName = lastName;
+      LicenceNumber = licenceNumber;
+      Status = status;
+      PhoneNumbers = phoneNumbers ?? new List<string>();
+    }
+    public override string ToString()
+    {
+      string phones = string.Join(", ", PhoneNumbers);
+      return $"Driver: {FirstName} {LastName}, License: {LicenceNumber}, Status: {Status}, Phones: [{phones}]";
+    }
+  }
+}
+
+class DriverOperations
+{
+  public static Driver GetDriverById(int driverId)
+  {
+    List<string> phones = new List<string>();
+    using (SqlConnection conn = new SqlConnection(Program.connectionString))
+    {
+      conn.Open();
+      string query = "SELECT DRIVERID, FIRSTNAME, LASTNAME, LICENCENUMBER, STATUS FROM DRIVER WHERE DRIVERID = @DriverId";
+      using (SqlCommand cmd = new SqlCommand(query, conn))
+      {
+        cmd.Parameters.AddWithValue("@DriverId", driverId);
+        using (SqlDataReader reader = cmd.ExecuteReader())
+        {
+          if (!reader.Read())
+            return null;
+          int id = reader.GetInt32(0);
+          string firstName = reader.GetString(1);
+          string lastName = reader.IsDBNull(2) ? null : reader.GetString(2);
+          string licenceNumber = reader.GetString(3);
+          string status = reader.GetString(4);
+          reader.Close();
+          string phoneQuery = "SELECT PHONENUMBER FROM DRIVERPHONE WHERE DRIVERID = @DriverId";
+          using (SqlCommand phoneCmd = new SqlCommand(phoneQuery, conn))
+          {
+            phoneCmd.Parameters.AddWithValue("@DriverId", driverId);
+            using (SqlDataReader phoneReader = phoneCmd.ExecuteReader())
+            {
+              while (phoneReader.Read())
+              {
+                phones.Add(phoneReader.GetString(0));
+              }
+            }
+          }
+          return new Driver(id, firstName, lastName, licenceNumber, status, phones);
+        }
+      }
+    }
+  }
+
+  public static List<Driver> GetAllDrivers()
+  {
+    var drivers = new List<Driver>();
+    using (SqlConnection conn = new SqlConnection(Program.connectionString))
+    {
+      conn.Open();
+      var tempDriverList = new List<(int DriverId, string FirstName, string LastName, string LicenceNumber, string Status)>();
+      string query = "SELECT DRIVERID, FIRSTNAME, LASTNAME, LICENCENUMBER, STATUS FROM DRIVER";
+      using (SqlCommand cmd = new SqlCommand(query, conn))
+      using (SqlDataReader reader = cmd.ExecuteReader())
+      {
+        while (reader.Read())
+        {
+          tempDriverList.Add((
+              DriverId: reader.GetInt32(0),
+              FirstName: reader.GetString(1),
+              LastName: reader.IsDBNull(2) ? null : reader.GetString(2),
+              LicenceNumber: reader.GetString(3),
+              Status: reader.GetString(4)
+          ));
+        }
+      }
+      foreach (var d in tempDriverList)
+      {
+        var phones = GetPhonesByDriverId(d.DriverId, conn);
+        drivers.Add(new Driver(d.DriverId, d.FirstName, d.LastName, d.LicenceNumber, d.Status, phones));
+      }
+    }
+    return drivers;
+  }
+
+
+  private static List<string> GetPhonesByDriverId(int driverId, SqlConnection conn)
+  {
+    var phones = new List<string>();
+    string query = "SELECT PHONENUMBER FROM DRIVERPHONE WHERE DRIVERID = @DriverId";
+    using (SqlCommand cmd = new SqlCommand(query, conn))
+    {
+      cmd.Parameters.AddWithValue("@DriverId", driverId);
+      using (SqlDataReader reader = cmd.ExecuteReader())
+      {
+        while (reader.Read())
+        {
+          phones.Add(reader.GetString(0));
+        }
+      }
+    }
+    return phones;
+  }
+}

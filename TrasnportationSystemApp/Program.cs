@@ -6,12 +6,13 @@ using UserInfo;
 using DriverInfo;
 using RideInfo;
 using Tripinfo;
+using PromoCodeInfo;
 using System.IO;
 namespace Trasnportation_System
 {
   class Program
   {
-    public static string connectionString = @"Server=DESKTOP-6H50C7D;Database=Transportation_System;Trusted_Connection=True;";
+    public static string connectionString = @"Server=DESKTOP-6H50C7D;Database=Transportation_System2;Trusted_Connection=True;";
     public static User currentLoggedInUser;
     static void Main()
     {
@@ -44,7 +45,9 @@ namespace Trasnportation_System
               Console.WriteLine("5. Search Rides");
               Console.WriteLine("6. Generate Ride Report");
               Console.WriteLine("7. View trip details");
-              Console.WriteLine("8. Log Out");
+              Console.WriteLine("8. Add Promo Code");
+              Console.WriteLine("9. View All Promo Codes");
+              Console.WriteLine("10. Log Out");
               Console.Write("Choose an option: ");
               input = Console.ReadLine();
               switch (input)
@@ -191,6 +194,30 @@ namespace Trasnportation_System
                   TripDetails.DisplayTripDetailsMenu(currentLoggedInUser.id);
                   break;
                 case "8":
+                  Console.Clear();
+                  PromoCodeOperations.AddPromoCode();
+                  Console.WriteLine("\nPress Enter to continue...");
+                  Console.ReadLine();
+                  break;
+                case "9":
+                  Console.Clear();
+                  var promoCodes = PromoCodeOperations.GetAllPromoCodes();
+                  if (promoCodes.Count == 0)
+                  {
+                    Console.WriteLine("No promo codes found.");
+                  }
+                  else
+                  {
+                    Console.WriteLine("=== All Promo Codes ===");
+                    foreach (var pc in promoCodes)
+                    {
+                      Console.WriteLine(pc);
+                    }
+                  }
+                  Console.WriteLine("\nPress Enter to continue...");
+                  Console.ReadLine();
+                  break;
+                case "10":
                   isLogin = false;
                   break;
               }

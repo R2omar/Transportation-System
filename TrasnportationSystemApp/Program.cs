@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using UserInfo;
 using DriverInfo;
 using RideInfo;
+using Tripinfo;
 using System.IO;
 namespace Trasnportation_System
 {
@@ -41,7 +42,8 @@ namespace Trasnportation_System
               Console.WriteLine("3. Search Driver by ID");
               Console.WriteLine("4. View Ride History");
               Console.WriteLine("5. Search Rides");
-              Console.WriteLine("6. Log Out");
+              Console.WriteLine("6. View trip details");
+              Console.WriteLine("7. Log Out");
               Console.Write("Choose an option: ");
               input = Console.ReadLine();
               switch (input)
@@ -180,6 +182,10 @@ namespace Trasnportation_System
                   Console.ReadLine();
                   break;
                 case "6":
+                  Console.Clear();
+                  TripDetails.DisplayTripDetailsMenu(currentLoggedInUser.id);
+                  break;
+                case "7":
                   isLogin = false;
                   break;
               }

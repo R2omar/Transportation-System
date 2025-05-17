@@ -11,7 +11,7 @@ namespace Trasnportation_System
 {
   class Program
   {
-    public static string connectionString = @"Server=DESKTOP-PU6LD79;Database=Transportation_System;Trusted_Connection=True;";
+    public static string connectionString = @"Server=DESKTOP-6H50C7D;Database=Transportation_System;Trusted_Connection=True;";
     public static User currentLoggedInUser;
     static void Main()
     {
@@ -42,8 +42,9 @@ namespace Trasnportation_System
               Console.WriteLine("3. Search Driver by ID");
               Console.WriteLine("4. View Ride History");
               Console.WriteLine("5. Search Rides");
-              Console.WriteLine("6. View trip details");
-              Console.WriteLine("7. Log Out");
+              Console.WriteLine("6. Generate Ride Report");
+              Console.WriteLine("7. View trip details");
+              Console.WriteLine("8. Log Out");
               Console.Write("Choose an option: ");
               input = Console.ReadLine();
               switch (input)
@@ -95,17 +96,17 @@ namespace Trasnportation_System
                   break;
                 case "4":
                   Console.Clear();
-                  var rides = RideOperations.GetUserRideHistory(currentLoggedInUser.id);
-                  if (rides.Count == 0)
+                  var trips = RideOperations.GetUserRideHistory(currentLoggedInUser.id);
+                  if (trips.Count == 0)
                   {
                     Console.WriteLine("No ride history found.");
                   }
                   else
                   {
                     Console.WriteLine("=== Your Ride History ===");
-                    foreach (var ride in rides)
+                    foreach (var trip in trips)
                     {
-                      Console.WriteLine("\n" + ride.ToString());
+                      Console.WriteLine("\n" + trip.ToString());
                       Console.WriteLine("------------------------");
                     }
                   }
@@ -183,9 +184,13 @@ namespace Trasnportation_System
                   break;
                 case "6":
                   Console.Clear();
-                  TripDetails.DisplayTripDetailsMenu(currentLoggedInUser.id);
+                  UserReportGenerator.reportGenerator();
                   break;
                 case "7":
+                  Console.Clear();
+                  TripDetails.DisplayTripDetailsMenu(currentLoggedInUser.id);
+                  break;
+                case "8":
                   isLogin = false;
                   break;
               }

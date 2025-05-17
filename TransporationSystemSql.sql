@@ -393,7 +393,7 @@ create table FEEDBACK (
    TRIP_ID              int                  not null,
    USERID               int                  not null,
    COMMENTS             varchar(100)         null,
-   RATING               decimal(1,1)         null,
+   RATING               decimal(2,1)         null,
    SUBMITTEDATDATE      datetime             null,
    SUBMITTEDATTIME      datetime             null,
    constraint PK_FEEDBACK primary key nonclustered (FEEDBACKID, TRIP_ID, USERID)

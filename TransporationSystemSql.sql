@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      Microsoft SQL Server 2012                    */
-/* Created on:     14/05/2025 23:48:00                          */
+/* Created on:     5/17/2025 2:00:46 PM                         */
 /*==============================================================*/
 
 
@@ -72,6 +72,13 @@ if exists (select 1
    where r.fkeyid = object_id('RIDE') and o.name = 'FK_RIDE_ASSIGNEDT_DRIVER')
 alter table RIDE
    drop constraint FK_RIDE_ASSIGNEDT_DRIVER
+go
+
+if exists (select 1
+   from sys.sysreferences r join sys.sysobjects o on (o.id = r.constid and o.type = 'F')
+   where r.fkeyid = object_id('RIDE') and o.name = 'FK_RIDE_REFERENCE_VEHICLE')
+alter table RIDE
+   drop constraint FK_RIDE_REFERENCE_VEHICLE
 go
 
 if exists (select 1
@@ -320,6 +327,7 @@ create table BOOKING (
    RIDEID               int                  not null,
    RID_USERID           int                  not null,
    DRIVERID             int                  not null,
+   VEHICLEID            int                  not null,
    USERID               int                  not null,
    BOOKINGATDATE        datetime             not null,
    BOOKINGATTIME        datetime             not null,
@@ -333,7 +341,8 @@ go
 create index CREATE2_FK on BOOKING (
 RIDEID ASC,
 RID_USERID ASC,
-DRIVERID ASC
+DRIVERID ASC,
+VEHICLEID ASC
 )
 go
 
@@ -443,6 +452,7 @@ create table PAYMENT (
    RIDEID               int                  not null,
    USERID               int                  not null,
    DRIVERID             int                  not null,
+   VEHICLEID            int                  not null,
    PAYMENT_METHOD       varchar(20)          not null,
    AMOUNT               decimal              not null,
    PAYMENT_STATUS       varchar(20)          not null,
@@ -456,7 +466,8 @@ go
 create index HAS2_FK on PAYMENT (
 RIDEID ASC,
 USERID ASC,
-DRIVERID ASC
+DRIVERID ASC,
+VEHICLEID ASC
 )
 go
 
@@ -491,6 +502,7 @@ create table RIDE (
    RIDEID               int                  not null,
    USERID               int                  not null,
    DRIVERID             int                  not null,
+   VEHICLEID            int                  not null,
    DEOPOFF_STREET       varchar(50)          not null,
    DROPOFF_CITY         varchar(50)          not null,
    PICKUP_STREET        varchar(50)          not null,
@@ -499,7 +511,7 @@ create table RIDE (
    REQUESTEDTIME        datetime             not null,
    FINALFARE            money                null,
    ESTIMATEDFARE        money                null,
-   constraint PK_RIDE primary key nonclustered (RIDEID, USERID, DRIVERID)
+   constraint PK_RIDE primary key nonclustered (RIDEID, USERID, DRIVERID, VEHICLEID)
 )
 go
 
@@ -527,7 +539,7 @@ create table TRIP (
    RIDEID               int                  not null,
    USERID               int                  not null,
    DRIVERID             int                  not null,
-   DRIVER_NAME          varchar(20)          not null,
+   VEHICLEID            int                  not null,
    RIDE_TIME            datetime             null,
    RIDE_FEES            decimal              not null,
    constraint PK_TRIP primary key nonclustered (TRIP_ID)
@@ -540,17 +552,16 @@ go
 create index HAS4_FK on TRIP (
 RIDEID ASC,
 USERID ASC,
-DRIVERID ASC
+DRIVERID ASC,
+VEHICLEID ASC
 )
 go
-
-
 
 /*==============================================================*/
 /* Table: "USER"                                                */
 /*==============================================================*/
 create table "USER" (
-   USERID               int  Identity(1,1)   not null,
+   USERID               int                  not null,
    FIRSTNAME            varchar(20)          not null,
    LASTNAME             varchar(20)          null,
    EMAIL                varchar(50)          not null,
@@ -599,8 +610,8 @@ DRIVERID ASC
 go
 
 alter table BOOKING
-   add constraint FK_BOOKING_CREATE2_RIDE foreign key (RIDEID, RID_USERID, DRIVERID)
-      references RIDE (RIDEID, USERID, DRIVERID)
+   add constraint FK_BOOKING_CREATE2_RIDE foreign key (RIDEID, RID_USERID, DRIVERID, VEHICLEID)
+      references RIDE (RIDEID, USERID, DRIVERID, VEHICLEID)
 go
 
 alter table BOOKING
@@ -634,8 +645,8 @@ alter table HAS2
 go
 
 alter table PAYMENT
-   add constraint FK_PAYMENT_HAS2_RIDE foreign key (RIDEID, USERID, DRIVERID)
-      references RIDE (RIDEID, USERID, DRIVERID)
+   add constraint FK_PAYMENT_HAS2_RIDE foreign key (RIDEID, USERID, DRIVERID, VEHICLEID)
+      references RIDE (RIDEID, USERID, DRIVERID, VEHICLEID)
 go
 
 alter table PAYMENT
@@ -649,13 +660,18 @@ alter table RIDE
 go
 
 alter table RIDE
+   add constraint FK_RIDE_REFERENCE_VEHICLE foreign key (VEHICLEID)
+      references VEHICLE (VEHICLEID)
+go
+
+alter table RIDE
    add constraint FK_RIDE_REQUEST_USER foreign key (USERID)
       references "USER" (USERID)
 go
 
 alter table TRIP
-   add constraint FK_TRIP_HAS4_RIDE foreign key (RIDEID, USERID, DRIVERID)
-      references RIDE (RIDEID, USERID, DRIVERID)
+   add constraint FK_TRIP_HAS4_RIDE foreign key (RIDEID, USERID, DRIVERID, VEHICLEID)
+      references RIDE (RIDEID, USERID, DRIVERID, VEHICLEID)
 go
 
 alter table USERPHONE

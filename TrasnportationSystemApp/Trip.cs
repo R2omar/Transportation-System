@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Collections.Generic;
 using Trasnportation_System;
+using FeedbackInfo;
 
 namespace Tripinfo
 {
@@ -100,7 +101,31 @@ namespace Tripinfo
             if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= trips.Count)
             {
                 DisplayTripDetails(trips[choice - 1]);
+                if (trips[choice - 1].RideStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("\nWould you like to leave feedback for this trip? (y/n): ");
+                    var feedbackChoice = Console.ReadLine();
+                    if (feedbackChoice?.ToLower() == "y")
+                    {
+                        int rating = 0;
+                        while (rating < 1 || rating > 5)
+                        {
+                            Console.Write("Enter a star rating (1 to 5): ");
+                            int.TryParse(Console.ReadLine(), out rating);
+                        }
+                
+                        Console.Write("Write your feedback: ");
+                        string comment = Console.ReadLine();
+                
+                        SaveFeedback(trips[choice - 1].TripId, userId, rating, comment);
+                        Console.WriteLine("Thank you! Your feedback has been submitted.");
+                    }
+                }
+                
+                Console.WriteLine("\nPress Enter to return...");
+                Console.ReadLine();
             }
+            
         }
 
         private static void DisplayTripDetails(TripDetails trip)
@@ -120,6 +145,39 @@ namespace Tripinfo
 
             Console.WriteLine("\nPress Enter to return...");
             Console.ReadLine();
+        }
+        private static void SaveFeedback(int tripId, int userId, int rating, string comment)
+        {
+            Feedback feedback = new Feedback
+            {
+                TripId = tripId,
+                UserId = userId,
+                Rating = rating,
+                Comments = comment ?? string.Empty,
+                SubmittedAtDate = DateTime.Now.Date,
+                SubmittedAtTime = DateTime.Now.TimeOfDay
+            };
+        
+            using (SqlConnection conn = new SqlConnection(Program.connectionString))
+            {
+                conn.Open();
+        
+                string Query = @"
+                    INSERT INTO FEEDBACK (TRIP_ID, USERID, COMMENTS, RATING, SUBMITTEDATDATE, SUBMITTEDATTIME)
+                    VALUES (@TripId, @UserId, @Comments, @Rating, @Date, @Time);";
+        
+                using (SqlCommand cmd = new SqlCommand(Query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TripId", feedback.TripId);
+                    cmd.Parameters.AddWithValue("@UserId", feedback.UserId);
+                    cmd.Parameters.AddWithValue("@Comments", feedback.Comments);
+                    cmd.Parameters.AddWithValue("@Rating", feedback.Rating);
+                    cmd.Parameters.AddWithValue("@Date", feedback.SubmittedAtDate);
+                    cmd.Parameters.AddWithValue("@Time", feedback.SubmittedAtTime);
+        
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

@@ -561,7 +561,7 @@ go
 /* Table: "USER"                                                */
 /*==============================================================*/
 create table "USER" (
-   USERID               int                  not null,
+   USERID               int                  not null identity(1,1),
    FIRSTNAME            varchar(20)          not null,
    LASTNAME             varchar(20)          null,
    EMAIL                varchar(50)          not null,

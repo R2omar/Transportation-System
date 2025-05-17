@@ -95,17 +95,17 @@ namespace Trasnportation_System
                   break;
                 case "4":
                   Console.Clear();
-                  var trips = RideOperations.GetUserRideHistory(currentLoggedInUser.id);
-                  if (trips.Count == 0)
+                  var rides = RideOperations.GetUserRideHistory(currentLoggedInUser.id);
+                  if (rides.Count == 0)
                   {
                     Console.WriteLine("No ride history found.");
                   }
                   else
                   {
                     Console.WriteLine("=== Your Ride History ===");
-                    foreach (var trip in trips)
+                    foreach (var ride in rides)
                     {
-                      Console.WriteLine("\n" + trip.ToString());
+                      Console.WriteLine("\n" + ride.ToString());
                       Console.WriteLine("------------------------");
                     }
                   }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
@@ -94,12 +94,12 @@ namespace Trasnportation_System
                                     Console.WriteLine("\nPress Enter to continue...");
                                     Console.ReadLine();
                                     break;
-                                case "5":
-                                    isLogin = false;
-                                    break;
                                 case "4":
                                     Console.Clear();
                                     TripDetails.DisplayTripDetailsMenu(currentLoggedInUser.id);
+                                    break;
+                                case "5":
+                                    isLogin = false;
                                     break;
                                 default:
                                     Console.WriteLine("Invalid input. Press Enter...");
@@ -111,7 +111,6 @@ namespace Trasnportation_System
                     case "3":
                         Console.WriteLine("Thanks For Using Our Program");
                         return;
-
                 }
             }
         }

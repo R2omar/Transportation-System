@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data;
@@ -262,5 +262,103 @@ namespace UserInfo
             }
         }
     }
+    public class UserReportGenerator
+    {
+        public static void reportGenerator()
+        {
+            Console.WriteLine("Generating User Ride Activity and Spending Report...\n");
+
+            string sqlQuery = @"
+            SELECT
+                u.FIRSTNAME,
+                u.LASTNAME,
+                COUNT(CASE WHEN r.RIDESTATUS = 'Completed' THEN r.RIDEID ELSE NULL END) AS TotalRidesCompleted,
+                ISNULL(SUM(CASE WHEN r.RIDESTATUS = 'Completed' THEN r.FINALFARE ELSE NULL END), 0) AS TotalAmountSpent,
+                ISNULL(AVG(CASE WHEN r.RIDESTATUS = 'Completed' THEN r.FINALFARE ELSE NULL END), 0) AS AverageFarePerCompletedRide,
+                MIN(CASE WHEN r.RIDESTATUS = 'Completed' THEN r.REQUESTEDTIME ELSE NULL END) AS FirstCompletedRideDate,
+                MAX(CASE WHEN r.RIDESTATUS = 'Completed' THEN r.REQUESTEDTIME ELSE NULL END) AS LastCompletedRideDate,
+                COUNT(CASE WHEN r.RIDESTATUS = 'Cancelled' THEN r.RIDEID ELSE NULL END) AS TotalCancelledRides
+            FROM
+                ""USER"" u
+            LEFT JOIN
+                RIDE r ON u.USERID = r.USERID
+            WHERE
+                u.USERID = @LoggedInUserId
+            GROUP BY
+                u.USERID, u.FIRSTNAME, u.LASTNAME;";
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(Program.connectionString))
+                {
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand(sqlQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@LoggedInUserId", Program.currentLoggedInUser.id);
+
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.Read()) 
+                            {
+                                string firstName = reader["FIRSTNAME"].ToString();
+                                string lastName = reader["LASTNAME"].ToString();
+                                int totalRidesCompleted = (int)reader["TotalRidesCompleted"];
+                                decimal totalAmountSpent = (decimal)reader["TotalAmountSpent"];
+                                decimal averageFare = (decimal)reader["AverageFarePerCompletedRide"];
+                                int totalCancelledRides = (int)reader["TotalCancelledRides"];
+
+                                DateTime? firstRideDate = reader["FirstCompletedRideDate"] as DateTime?;
+                                DateTime? lastRideDate = reader["LastCompletedRideDate"] as DateTime?;
+
+
+                                Console.WriteLine($"Report for: {firstName} {lastName}");
+                                Console.WriteLine(new string('-', 60)); 
+                                Console.WriteLine($"Completed Rides: {totalRidesCompleted}");
+                                Console.WriteLine($"Total Amount Spent: {totalAmountSpent:C2}");
+                                Console.WriteLine($"Average Fare (Completed Rides): {averageFare:C2}");
+                                Console.WriteLine($"Total Cancelled Rides: {totalCancelledRides}");
+
+                                if (firstRideDate.HasValue)
+                                {
+                                    Console.WriteLine($"First Completed Ride: {firstRideDate.Value:yyyy-MM-dd HH:mm}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("First Completed Ride: N/A");
+                                }
+
+                                if (lastRideDate.HasValue)
+                                {
+                                    Console.WriteLine($"Last Completed Ride: {lastRideDate.Value:yyyy-MM-dd HH:mm}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Last Completed Ride: N/A");
+                                }
+                            }
+                            else
+                            {
+                                
+                                Console.WriteLine($"User with ID {Program.currentLoggedInUser.id} not found in the database.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine($"\nDatabase Error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nAn unexpected error occurred: {ex.Message}");
+            }
+
+            Console.WriteLine("\nUser report generation finished.");
+            Console.Write("\nPress Enter To Return....");
+            Console.ReadKey();
+        }
+    }
+
 
 }

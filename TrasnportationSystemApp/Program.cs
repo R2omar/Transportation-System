@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using UserInfo;
 using DriverInfo;
+using RideInfo;
 using System.IO;
 namespace Trasnportation_System
 {
@@ -38,7 +39,9 @@ namespace Trasnportation_System
               Console.WriteLine("1. Update Profile");
               Console.WriteLine("2. View All Drivers");
               Console.WriteLine("3. Search Driver by ID");
-              Console.WriteLine("4. Log Out");
+              Console.WriteLine("4. View Ride History");
+              Console.WriteLine("5. Search Rides");
+              Console.WriteLine("6. Log Out");
               Console.Write("Choose an option: ");
               input = Console.ReadLine();
               switch (input)
@@ -89,6 +92,94 @@ namespace Trasnportation_System
                   Console.ReadLine();
                   break;
                 case "4":
+                  Console.Clear();
+                  var trips = RideOperations.GetUserRideHistory(currentLoggedInUser.id);
+                  if (trips.Count == 0)
+                  {
+                    Console.WriteLine("No ride history found.");
+                  }
+                  else
+                  {
+                    Console.WriteLine("=== Your Ride History ===");
+                    foreach (var trip in trips)
+                    {
+                      Console.WriteLine("\n" + trip.ToString());
+                      Console.WriteLine("------------------------");
+                    }
+                  }
+                  Console.WriteLine("\nPress Enter to continue...");
+                  Console.ReadLine();
+                  break;
+                case "5":
+                  Console.Clear();
+                  Console.WriteLine("=== Search Ride History ===");
+                  Console.WriteLine("1. Search by Date");
+                  Console.WriteLine("2. Search by Vehicle Type");
+                  Console.WriteLine("3. Search by Both");
+                  Console.WriteLine("4. Back to Main Menu");
+                  Console.Write("Choose an option: ");
+                  string searchOption = Console.ReadLine();
+
+                  DateTime? rideDate = null;
+                  string vehicleType = null;
+
+                  if (searchOption == "1" || searchOption == "3")
+                  {
+                    Console.Write("Enter date (yyyy-MM-dd): ");
+                    string dateInputStr = Console.ReadLine();
+
+                    if (DateTime.TryParseExact(dateInputStr, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime dateInput))
+                    {
+                      rideDate = dateInput;
+                    }
+                    else
+                    {
+                      Console.WriteLine("Invalid date format. Please use yyyy-MM-dd.");
+                      Console.WriteLine("\nPress Enter to continue...");
+                      Console.ReadLine();
+                      return;
+                    }
+                  }
+
+                  if (searchOption == "2" || searchOption == "3")
+                  {
+                    Console.Write("Enter vehicle type: ");
+                    vehicleType = Console.ReadLine();
+
+                    if (string.IsNullOrWhiteSpace(vehicleType))
+                    {
+                      Console.WriteLine("Vehicle type cannot be empty.");
+                      Console.WriteLine("\nPress Enter to continue...");
+                      Console.ReadLine();
+                      return;
+                    }
+                  }
+
+                  if (searchOption == "4")
+                  {
+                    break;
+                  }
+
+                  var filteredRids = RideOperations.GetRidesByVehicleOrDate(currentLoggedInUser.id, vehicleType, rideDate);
+
+                  if (filteredRids.Count == 0)
+                  {
+                    Console.WriteLine("No rides found for the selected criteria.");
+                  }
+                  else
+                  {
+                    Console.WriteLine("=== Filtered Ride History ===");
+                    foreach (var trip in filteredRids)
+                    {
+                      Console.WriteLine("\n" + trip.ToString());
+                      Console.WriteLine("------------------------");
+                    }
+                  }
+
+                  Console.WriteLine("\nPress Enter to continue...");
+                  Console.ReadLine();
+                  break;
+                case "6":
                   isLogin = false;
                   break;
               }

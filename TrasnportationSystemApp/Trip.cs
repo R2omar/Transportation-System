@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Collections.Generic;
@@ -28,24 +28,24 @@ namespace Tripinfo
                 conn.Open();
 
                 string query = @"
-                    SELECT 
-                        t.TRIP_ID,
-                        t.DRIVER_NAME,
-                        v.PLATE_NUMBER,
-                        v.VEHICLE_TYPE,
-                        dp.PHONENUMBER,
-                        t.RIDE_TIME,
-                        t.RIDE_FEES,
-                        r.PICKUP_STREET + ', ' + r.PICKUP_CITY as PickupLocation,
-                        r.DEOPOFF_STREET + ', ' + r.DROPOFF_CITY as DropoffLocation,
-                        r.RIDESTATUS
-                    FROM TRIP t
-                    JOIN RIDE r ON t.RIDEID = r.RIDEID AND t.USERID = r.USERID AND t.DRIVERID = r.DRIVERID
-                    JOIN DRIVER d ON t.DRIVERID = d.DRIVERID
-                    LEFT JOIN VEHICLE v ON d.DRIVERID = v.DRIVERID
-                    LEFT JOIN DRIVERPHONE dp ON d.DRIVERID = dp.DRIVERID
-                    WHERE t.USERID = @UserId
-                    ORDER BY t.RIDE_TIME DESC";
+                                SELECT 
+                                t.TRIP_ID,
+                                d.FIRSTNAME + d.LASTNAME as DRIVER_NAME,
+                                v.PLATE_NUMBER,
+                                v.VEHICLE_TYPE,
+                                dp.PHONENUMBER,
+                                t.RIDE_TIME,
+                                t.RIDE_FEES,
+                                r.PICKUP_STREET + ', ' + r.PICKUP_CITY as PickupLocation,
+                                r.DEOPOFF_STREET + ', ' + r.DROPOFF_CITY as DropoffLocation,
+                                r.RIDESTATUS
+                            FROM TRIP t
+                            JOIN RIDE r ON t.RIDEID = r.RIDEID AND t.USERID = r.USERID AND t.DRIVERID = r.DRIVERID
+                            JOIN DRIVER d ON t.DRIVERID = d.DRIVERID
+                            LEFT JOIN VEHICLE v ON d.DRIVERID = v.DRIVERID
+                            LEFT JOIN DRIVERPHONE dp ON d.DRIVERID = dp.DRIVERID
+                            WHERE t.USERID = 1
+                            ORDER BY t.RIDE_TIME DESC";
 
                 SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@UserId", userId);

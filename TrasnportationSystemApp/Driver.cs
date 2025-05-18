@@ -17,19 +17,23 @@ namespace DriverInfo
     public string Status { get; }
     public List<string> PhoneNumbers { get; }
 
-    public Driver(int driverId, string firstName, string lastName, string licenceNumber, string status, List<string> phoneNumbers)
-    {
+    public double? AverageRating { get; }
+
+    public Driver(int driverId, string firstName, string lastName, string licenceNumber, string status, List<string> phoneNumbers, double? averageRating = null)
+{
       DriverId = driverId;
       FirstName = firstName;
       LastName = lastName;
       LicenceNumber = licenceNumber;
       Status = status;
       PhoneNumbers = phoneNumbers ?? new List<string>();
-    }
+      AverageRating = averageRating;
+}
     public override string ToString()
     {
       string phones = string.Join(", ", PhoneNumbers);
-      return $"Driver: {FirstName} {LastName}, License: {LicenceNumber}, Status: {Status}, Phones: [{phones}]";
+      string rating = AverageRating.HasValue ? AverageRating.Value.ToString("0.00") : "N/A";
+      return $"Driver: {FirstName} {LastName}, License: {LicenceNumber}, Status: {Status}, Phones: [{phones}], Avg Rating: {rating}";
     }
   }
 }
@@ -97,14 +101,14 @@ class DriverOperations
         }
       }
       foreach (var d in tempDriverList)
-      {
-        var phones = GetPhonesByDriverId(d.DriverId, conn);
-        drivers.Add(new Driver(d.DriverId, d.FirstName, d.LastName, d.LicenceNumber, d.Status, phones));
-      }
+        {
+          var phones = GetPhonesByDriverId(d.DriverId, conn);
+          double? avgRating = GetAverageRatingByDriverId(d.DriverId, conn);
+          drivers.Add(new Driver(d.DriverId, d.FirstName, d.LastName, d.LicenceNumber, d.Status, phones, avgRating));
+        }
     }
     return drivers;
   }
-
 
   private static List<string> GetPhonesByDriverId(int driverId, SqlConnection conn)
   {
@@ -123,4 +127,20 @@ class DriverOperations
     }
     return phones;
   }
+    private static double? GetAverageRatingByDriverId(int driverId, SqlConnection conn)
+    {
+        string query = @"
+        SELECT AVG(CAST(F.RATING AS FLOAT))
+        FROM FEEDBACK F
+        INNER JOIN TRIP T ON F.TRIPID = T.TRIPID
+        WHERE T.DRIVERID = @DriverId";
+
+        using (SqlCommand cmd = new SqlCommand(query, conn))
+        {
+            cmd.Parameters.AddWithValue("@DriverId", driverId);
+            object result = cmd.ExecuteScalar();
+            return result != DBNull.Value ? (double?)Convert.ToDouble(result) : null;
+        }
+    }
+
 }

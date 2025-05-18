@@ -201,5 +201,87 @@ namespace RideInfo
 
       return rides;
     }
-  }
+        private static decimal CalculateEstimatedFare(string pickup, string dropoff)
+        {
+            return 0;
+        }
+        public static int CreateRide(int userId, int driverId, int vehicleId, string pickupLocation, string dropoffLocation, DateTime rideTime)
+        {
+            int rideId;
+            int tripId;
+            decimal estimatedFare = CalculateEstimatedFare(pickupLocation, dropoffLocation);
+            decimal finalFare = estimatedFare;
+
+            using (SqlConnection conn = new SqlConnection(Program.connectionString))
+            {
+                conn.Open();
+
+                string[] pickupParts = pickupLocation.Split(',');
+                string[] dropoffParts = dropoffLocation.Split(',');
+
+                if (pickupParts.Length < 2 || dropoffParts.Length < 2)
+                {
+                    throw new Exception("Invalid pickup/drop-off format. Use: 'Street, City'");
+                }
+
+                string insertRideQuery = @"
+                INSERT INTO RIDE (
+                    USERID, DRIVERID, VEHICLEID,
+                    PICKUP_STREET, PICKUP_CITY,
+                    DEOPOFF_STREET, DROPOFF_CITY,
+                    RIDESTATUS, REQUESTEDTIME,
+                    ESTIMATEDFARE, FINALFARE
+                )
+                OUTPUT INSERTED.RIDEID
+                VALUES (
+                    @UserId, @DriverId, @VehicleId,
+                    @PickupStreet, @PickupCity,
+                    @DropoffStreet, @DropoffCity,
+                    'En Route', @RequestedTime,
+                    @EstimatedFare, @FinalFare
+                );";
+
+                using (SqlCommand cmd = new SqlCommand(insertRideQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@DriverId", driverId);
+                    cmd.Parameters.AddWithValue("@VehicleId", vehicleId);
+                    cmd.Parameters.AddWithValue("@PickupStreet", pickupParts[0].Trim());
+                    cmd.Parameters.AddWithValue("@PickupCity", pickupParts[1].Trim());
+                    cmd.Parameters.AddWithValue("@DropoffStreet", dropoffParts[0].Trim());
+                    cmd.Parameters.AddWithValue("@DropoffCity", dropoffParts[1].Trim());
+                    cmd.Parameters.AddWithValue("@RequestedTime", rideTime);
+                    cmd.Parameters.AddWithValue("@EstimatedFare", estimatedFare);
+                    cmd.Parameters.AddWithValue("@FinalFare", finalFare);
+
+                    rideId = (int)cmd.ExecuteScalar();
+                }
+
+                string insertTripQuery = @"
+                INSERT INTO TRIP (
+                    RIDEID, USERID, DRIVERID, VEHICLEID,
+                    RIDE_TIME, RIDE_FEES
+                )
+                OUTPUT INSERTED.TRIP_ID
+                VALUES (
+                    @RideId, @UserId, @DriverId, @VehicleId,
+                    @RideTime, @RideFees
+                );";
+
+                using (SqlCommand cmd = new SqlCommand(insertTripQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@RideId", rideId);
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@DriverId", driverId);
+                    cmd.Parameters.AddWithValue("@VehicleId", vehicleId);
+                    cmd.Parameters.AddWithValue("@RideTime", rideTime);
+                    cmd.Parameters.AddWithValue("@RideFees", finalFare);
+
+                    tripId = (int)cmd.ExecuteScalar();
+                }
+            }
+
+            return tripId;
+        }
+    }
 }

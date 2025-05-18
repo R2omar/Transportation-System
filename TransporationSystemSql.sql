@@ -389,7 +389,7 @@ go
 /* Table: FEEDBACK                                              */
 /*==============================================================*/
 create table FEEDBACK (
-   FEEDBACKID           int                  not null,
+   FEEDBACKID           int IDENTITY(1,1)	   not null,
    TRIP_ID              int                  not null,
    USERID               int                  not null,
    COMMENTS             varchar(100)         null,

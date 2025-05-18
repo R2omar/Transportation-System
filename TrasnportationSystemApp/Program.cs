@@ -13,7 +13,7 @@ namespace Trasnportation_System
 {
     class Program
     {
-        public static string connectionString = @"Server=ABDALLAH;Database=Transportation_system;Trusted_Connection=True;";
+        public static string connectionString = @"Server=DESKTOP-6GRN1HR;Database=Transportation_SystemNEW;Trusted_Connection=True;";
         public static User currentLoggedInUser;
         static void Main()
         {
@@ -49,7 +49,8 @@ namespace Trasnportation_System
                             Console.WriteLine("8. Add Promo Code");
                             Console.WriteLine("9. View All Promo Codes");
                             Console.WriteLine("10. View Vehicle Type");
-                            Console.WriteLine("11. Log Out");
+                            Console.WriteLine("11. Book a Ride");
+                            Console.WriteLine("12. Log Out");
                             Console.Write("Choose an option: ");
                             input = Console.ReadLine();
                             switch (input)
@@ -224,6 +225,64 @@ namespace Trasnportation_System
                                     VehicleOperations.DisplayAvailableVehicleTypes(currentLoggedInUser.id);
                                     break;
                                 case "11":
+                                    Console.Clear();
+                                    Console.WriteLine("=== Book a Ride ===");
+
+                                    Console.Write("Enter pick-up location(Use: 'Street, City'): ");
+                                    string pickup = Console.ReadLine();
+
+                                    Console.Write("Enter drop-off location(Use: 'Street, City'): ");
+                                    string dropoff = Console.ReadLine();
+
+                                    Console.Write("Enter preferred time (yyyy-MM-dd HH:mm): ");
+                                    string timeInput = Console.ReadLine();
+                                    DateTime preferredTime;
+                                    if (!DateTime.TryParse(timeInput, out preferredTime))
+                                    {
+                                        Console.WriteLine("Invalid date/time format.");
+                                        Console.ReadLine();
+                                        break;
+                                    }
+
+                                    Console.Write("Enter vehicle type (e.g., Sedan, SUV): ");
+                                    string vehicletype = Console.ReadLine();
+
+                                    var availableDrivers = DriverOperations.GetAvailableDriversByVehicleType(vehicletype);
+                                    if (availableDrivers.Count == 0)
+                                    {
+                                        Console.WriteLine("No available drivers found for the selected vehicle type.");
+                                        Console.ReadLine();
+                                        break;
+                                    }
+
+                                    Console.WriteLine("Available Drivers:");
+                                    foreach (var d in availableDrivers)
+                                    {
+                                        Console.WriteLine(d);
+                                    }
+
+                                    Console.Write("Do you want to confirm the ride? (y/n): ");
+                                    string confirm = Console.ReadLine().ToLower();
+
+                                    if (confirm == "y")
+                                    {
+                                        var assignedDriver = availableDrivers[0];
+                                        int assignedVehicleID = VehicleOperations.GetVehicleIdByDriverAndType(assignedDriver.DriverId, vehicletype);
+                                        int tripId = RideOperations.CreateRide(currentLoggedInUser.id, assignedDriver.DriverId, assignedVehicleID, pickup, dropoff, preferredTime);
+
+                                        Console.WriteLine($"Driver {assignedDriver.FirstName} {assignedDriver.LastName} has been assigned.");
+                                        Console.WriteLine("Ride Status: En Route 🚗");
+
+                                        Console.WriteLine("\nPress Enter to continue...");
+                                        Console.ReadLine();
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Ride booking cancelled.");
+                                        Console.ReadLine();
+                                    }
+                                    break;
+                                case "12":
                                     isLogin = false;
                                     break;
                             }

@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Collections.Generic;
 using Trasnportation_System;
 using DriverInfo;
+using VehicleInfo;
 
 
 namespace DriverInfo
@@ -141,6 +142,50 @@ class DriverOperations
             object result = cmd.ExecuteScalar();
             return result != DBNull.Value ? (double?)Convert.ToDouble(result) : null;
         }
+    }
+    public static List<Driver> GetAvailableDriversByVehicleType(string vehicleType)
+    {
+        var availableDrivers = new List<Driver>();
+
+        using (SqlConnection conn = new SqlConnection(Program.connectionString))
+        {
+            conn.Open();
+
+            string query = @"
+            SELECT DISTINCT D.DRIVERID, D.FIRSTNAME, D.LASTNAME, D.LICENCENUMBER, D.STATUS
+            FROM DRIVER D
+            INNER JOIN VEHICLE V ON D.DRIVERID = V.DRIVERID
+            WHERE D.STATUS = 'Available' AND V.VEHICLETYPE = @VehicleType";
+
+            var tempDrivers = new List<(int DriverId, string FirstName, string LastName, string LicenceNumber, string Status)>();
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@VehicleType", vehicleType);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        tempDrivers.Add((
+                            reader.GetInt32(0),
+                            reader.GetString(1),
+                            reader.IsDBNull(2) ? null : reader.GetString(2),
+                            reader.GetString(3),
+                            reader.GetString(4)
+                        ));
+                    }
+                }
+            }
+
+            foreach (var d in tempDrivers)
+            {
+                var phones = GetPhonesByDriverId(d.DriverId, conn);
+                double? avgRating = GetAverageRatingByDriverId(d.DriverId, conn);
+                availableDrivers.Add(new Driver(d.DriverId, d.FirstName, d.LastName, d.LicenceNumber, d.Status, phones, avgRating));
+            }
+        }
+
+        return availableDrivers;
     }
 
 }

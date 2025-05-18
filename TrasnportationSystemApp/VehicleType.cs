@@ -82,5 +82,31 @@ namespace VehicleInfo
             Console.WriteLine("\nPress Enter to continue...");
             Console.ReadLine();
         }
+        public static int GetVehicleIdByDriverAndType(int driverId, string vehicleType)
+        {
+            using (SqlConnection conn = new SqlConnection(Program.connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+                SELECT TOP 1 VEHICLEID
+                FROM VEHICLE
+                WHERE DRIVERID = @DriverId AND VEHICLE_TYPE = @VehicleType";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@DriverId", driverId);
+                    cmd.Parameters.AddWithValue("@VehicleType", vehicleType);
+
+                    object result = cmd.ExecuteScalar();
+                    return Convert.ToInt32(result);
+                }
+            }
+        }
+
+
+
     }
+
+
 }

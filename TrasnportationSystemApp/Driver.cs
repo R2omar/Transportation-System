@@ -132,7 +132,7 @@ class DriverOperations
         string query = @"
         SELECT AVG(CAST(F.RATING AS FLOAT))
         FROM FEEDBACK F
-        INNER JOIN TRIP T ON F.TRIPID = T.TRIPID
+        INNER JOIN TRIP T ON F.TRIP_ID = T.TRIP_ID
         WHERE T.DRIVERID = @DriverId";
 
         using (SqlCommand cmd = new SqlCommand(query, conn))
